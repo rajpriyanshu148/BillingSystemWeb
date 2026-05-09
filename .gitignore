@@ -1,4 +1,36 @@
-.mvn/wrapper/maven-wrapper.jar
+# Compiled output
 target/
 *.class
 *.jar
+*.war
+
+# Maven
+.mvn/repository/
+
+# IDE files
+.idea/
+*.iml
+*.iws
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets (NEVER commit these)
+.env
+.env.local
+application-local.properties
+
+# H2 database files (if using file-based H2)
+*.db
+
+# Temp files
+*.tmp
