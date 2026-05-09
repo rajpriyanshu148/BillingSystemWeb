@@ -92,9 +92,9 @@
       transition: transform 0.15s, box-shadow 0.15s;
     }
     .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(99,102,241,0.55); }
-    .error-box {
-      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
-      border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #fca5a5;
+    .success-box {
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #86efac;
       margin-bottom: 18px;
     }
     .hint-box {
@@ -137,6 +137,11 @@
       <div class="form-title">Welcome back 👋</div>
       <div class="form-sub">Sign in to your account to continue</div>
 
+      <!-- Registration success -->
+      <div id="successBox" class="success-box" style="display:none">
+        ✅ Business registered successfully! Please sign in.
+      </div>
+
       <!-- Spring Security renders ?error on bad login -->
       <div th:if="${param.error}" class="error-box">
         ⚠️ Invalid username or password. Please try again.
@@ -170,14 +175,17 @@
         Admin: &nbsp;<strong>admin</strong> / <strong>admin123</strong><br/>
         Staff: &nbsp;&nbsp;<strong>staff</strong> / <strong>staff123</strong>
       </div>
+
+      <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted)">
+        New here? <a href="/register" style="color:#6366f1;font-weight:600;text-decoration:none">Register your business →</a>
+      </div>
     </div>
   </div>
 
   <script>
-    // Show error message if URL has ?error
-    if (new URLSearchParams(location.search).get('error') !== null) {
-      document.getElementById('errBox').style.display = 'block';
-    }
+    const p = new URLSearchParams(location.search);
+    if (p.get('error') !== null) document.getElementById('errBox').style.display = 'block';
+    if (p.get('registered') !== null) document.getElementById('successBox').style.display = 'block';
   </script>
 </body>
 </html>

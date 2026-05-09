@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Your Business — BillingSystem Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#6366f1;--primary-dark:#4f46e5;--accent:#f59e0b;
+      --bg:#0f0f1a;--card:#1a1a2e;--card2:#16213e;
+      --border:rgba(255,255,255,0.09);--text:#f1f5f9;--muted:#94a3b8;
+      --success:#22c55e;--error:#ef4444;
+    }
+    html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+    body{
+      background:radial-gradient(ellipse at 15% 40%,rgba(99,102,241,.13) 0%,transparent 55%),
+                 radial-gradient(ellipse at 85% 10%,rgba(245,158,11,.07) 0%,transparent 45%),
+                 var(--bg);
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+      min-height:100vh;padding:32px 16px;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .reg-header{text-align:center;margin-bottom:36px}
+    .brand{display:inline-flex;align-items:center;gap:12px;margin-bottom:16px}
+    .brand-icon{width:48px;height:48px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 24px rgba(245,158,11,.4)}
+    .brand-name{font-size:22px;font-weight:800;letter-spacing:-.5px}
+    .brand-name span{color:var(--accent)}
+    .reg-title{font-size:30px;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+    .reg-sub{color:var(--muted);font-size:15px}
+
+    /* ── Step indicator ──────────────────────────────────── */
+    .steps{display:flex;align-items:center;gap:0;margin-bottom:40px}
+    .step-item{display:flex;flex-direction:column;align-items:center;gap:6px}
+    .step-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid var(--border);color:var(--muted);transition:.3s}
+    .step-item.active .step-num{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 0 0 4px rgba(99,102,241,.25)}
+    .step-item.done .step-num{background:var(--success);border-color:var(--success);color:#fff}
+    .step-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .step-item.active .step-label{color:var(--primary)}
+    .step-line{flex:1;height:2px;background:var(--border);margin:0 8px;margin-bottom:20px;transition:.3s}
+    .step-line.done{background:var(--success)}
+
+    /* ── Card ────────────────────────────────────────────── */
+    .reg-card{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:780px;padding:40px;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+
+    /* ── Step panels ─────────────────────────────────────── */
+    .step-panel{display:none}
+    .step-panel.active{display:block}
+
+    /* ── Business type grid ──────────────────────────────── */
+    .biz-type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:28px}
+    .biz-card{
+      background:var(--card2);border:2px solid var(--border);border-radius:14px;
+      padding:20px 12px;text-align:center;cursor:pointer;
+      transition:border-color .2s,transform .15s,box-shadow .2s;
+      user-select:none;
+    }
+    .biz-card:hover{border-color:rgba(99,102,241,.4);transform:translateY(-2px)}
+    .biz-card.selected{border-color:var(--primary);background:rgba(99,102,241,.1);box-shadow:0 0 0 3px rgba(99,102,241,.2)}
+    .biz-card .icon{font-size:34px;margin-bottom:10px;display:block}
+    .biz-card .name{font-size:13px;font-weight:600;color:var(--text)}
+    .biz-card .desc{font-size:11px;color:var(--muted);margin-top:4px}
+
+    /* ── Form elements ───────────────────────────────────── */
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+    .form-row.single{grid-template-columns:1fr}
+    .form-row.triple{grid-template-columns:1fr 1fr 1fr}
+    .field{display:flex;flex-direction:column;gap:7px}
+    .field label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .field input,.field select{
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+      border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);
+      font-family:'Inter',sans-serif;outline:none;
+      transition:border-color .2s,box-shadow .2s;width:100%;
+    }
+    .field input:focus,.field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+    .field input::placeholder{color:rgba(255,255,255,.2)}
+    .field select option{background:#1a1a2e;color:var(--text)}
+    .field .hint{font-size:11px;color:var(--muted)}
+    .field input.error-input{border-color:var(--error)}
+
+    /* Password strength */
+    .pwd-strength{height:4px;border-radius:4px;background:rgba(255,255,255,.07);margin-top:6px;overflow:hidden}
+    .pwd-strength-bar{height:100%;border-radius:4px;width:0;transition:width .3s,background .3s}
+
+    /* Section heading */
+    .section-title{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .btn-row{display:flex;gap:12px;margin-top:28px}
+    .btn{padding:12px 24px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;transition:transform .15s,box-shadow .15s,opacity .15s}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;box-shadow:0 8px 24px rgba(99,102,241,.4);flex:1}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(99,102,241,.5)}
+    .btn-secondary{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid var(--border)}
+    .btn-secondary:hover{background:rgba(255,255,255,.1);color:var(--text)}
+
+    /* ── Success check list ──────────────────────────────── */
+    .check-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+    .check-list li{display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(255,255,255,.75)}
+    .check-list li::before{content:'✅';font-size:16px}
+
+    /* ── Alert ───────────────────────────────────────────── */
+    .alert{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-bottom:20px;display:none}
+    .alert.show{display:block}
+
+    /* ── Login link ──────────────────────────────────────── */
+    .login-link{text-align:center;margin-top:24px;font-size:13px;color:var(--muted)}
+    .login-link a{color:var(--primary);text-decoration:none;font-weight:600}
+    .login-link a:hover{text-decoration:underline}
+
+    @media(max-width:620px){
+      .biz-type-grid{grid-template-columns:repeat(3,1fr)}
+      .form-row{grid-template-columns:1fr}
+      .form-row.triple{grid-template-columns:1fr 1fr}
+      .reg-card{padding:24px 16px}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="reg-header">
+    <div class="brand">
+      <div class="brand-icon">🧾</div>
+      <div class="brand-name">Billing<span>System</span> Pro</div>
+    </div>
+    <div class="reg-title">Set Up Your Business</div>
+    <div class="reg-sub">Quick 3-step setup — takes less than 2 minutes</div>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="steps">
+    <div class="step-item active" id="si-1">
+      <div class="step-num">1</div>
+      <div class="step-label">Business Type</div>
+    </div>
+    <div class="step-line" id="sl-1"></div>
+    <div class="step-item" id="si-2">
+      <div class="step-num">2</div>
+      <div class="step-label">Business Info</div>
+    </div>
+    <div class="step-line" id="sl-2"></div>
+    <div class="step-item" id="si-3">
+      <div class="step-num">3</div>
+      <div class="step-label">Admin Account</div>
+    </div>
+  </div>
+
+  <div class="reg-card">
+    <div id="alertBox" class="alert"></div>
+    <form method="POST" action="/register" id="regForm">
+
+      <!-- ══════════════ STEP 1: Business Type ══════════════ -->
+      <div class="step-panel active" id="panel-1">
+        <div class="section-title">📋 What kind of business do you run?</div>
+        <div class="biz-type-grid">
+          <div class="biz-card" data-type="RETAIL" onclick="selectType(this)">
+            <span class="icon">🛒</span>
+            <div class="name">Retail Store</div>
+            <div class="desc">General merchandise</div>
+          </div>
+          <div class="biz-card" data-type="GROCERY" onclick="selectType(this)">
+            <span class="icon">🥦</span>
+            <div class="name">Grocery Store</div>
+            <div class="desc">Food & provisions</div>
+          </div>
+          <div class="biz-card" data-type="ELECTRONICS" onclick="selectType(this)">
+            <span class="icon">📱</span>
+            <div class="name">Electronics</div>
+            <div class="desc">Gadgets & appliances</div>
+          </div>
+          <div class="biz-card" data-type="PHARMACY" onclick="selectType(this)">
+            <span class="icon">💊</span>
+            <div class="name">Medical / Pharma</div>
+            <div class="desc">Medicine & health</div>
+          </div>
+          <div class="biz-card" data-type="RESTAURANT" onclick="selectType(this)">
+            <span class="icon">🍽️</span>
+            <div class="name">Restaurant / Café</div>
+            <div class="desc">Food & beverages</div>
+          </div>
+          <div class="biz-card" data-type="CLOTHING" onclick="selectType(this)">
+            <span class="icon">👗</span>
+            <div class="name">Clothing / Textile</div>
+            <div class="desc">Fashion & apparel</div>
+          </div>
+          <div class="biz-card" data-type="WHOLESALE" onclick="selectType(this)">
+            <span class="icon">🏗️</span>
+            <div class="name">Wholesale</div>
+            <div class="desc">Bulk distribution</div>
+          </div>
+          <div class="biz-card" data-type="SERVICE" onclick="selectType(this)">
+            <span class="icon">💈</span>
+            <div class="name">Service Business</div>
+            <div class="desc">Salon, repair, etc.</div>
+          </div>
+          <div class="biz-card" data-type="STATIONERY" onclick="selectType(this)">
+            <span class="icon">📚</span>
+            <div class="name">Stationery / Books</div>
+            <div class="desc">Office supplies</div>
+          </div>
+          <div class="biz-card" data-type="HARDWARE" onclick="selectType(this)">
+            <span class="icon">🔧</span>
+            <div class="name">Hardware</div>
+            <div class="desc">Tools & materials</div>
+          </div>
+          <div class="biz-card" data-type="AUTOMOBILE" onclick="selectType(this)">
+            <span class="icon">🚗</span>
+            <div class="name">Automobile</div>
+            <div class="desc">Parts & service</div>
+          </div>
+          <div class="biz-card" data-type="OTHER" onclick="selectType(this)">
+            <span class="icon">🏢</span>
+            <div class="name">Other</div>
+            <div class="desc">Any business type</div>
+          </div>
+        </div>
+        <input type="hidden" name="businessType" id="bizTypeInput" required/>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" onclick="nextStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- ══════════════ STEP 2: Business Info ══════════════ -->
+      <div class="step-panel" id="panel-2">
+        <div class="section-title">🏪 Tell us about your business</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Business Name *</label>
+            <input type="text" name="businessName" id="businessName" placeholder="e.g. Sharma Electronics" required/>
+          </div>
+          <div class="field">
+            <label>Owner / Proprietor Name</label>
+            <input type="text" name="ownerName" placeholder="e.g. Rajesh Sharma"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Phone Number *</label>
+            <input type="tel" name="phone" id="bizPhone" placeholder="+91 98765 43210" required/>
+          </div>
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="contact@yourbusiness.com"/>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="field">
+            <label>Address Line</label>
+            <input type="text" name="addressLine1" placeholder="Shop No., Street, Area"/>
+          </div>
+        </div>
+        <div class="form-row triple">
+          <div class="field">
+            <label>City</label>
+            <input type="text" name="city" placeholder="Mumbai"/>
+          </div>
+          <div class="field">
+            <label>State</label>
+            <select name="state">
+              <option value="">Select State</option>
+              <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option>
+              <option>Bihar</option><option>Chhattisgarh</option><option>Goa</option>
+              <option>Gujarat</option><option>Haryana</option><option>Himachal Pradesh</option>
+              <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+              <option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option>
+              <option>Meghalaya</option><option>Mizoram</option><option>Nagaland</option>
+              <option>Odisha</option><option>Punjab</option><option>Rajasthan</option>
+              <option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+              <option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option>
+              <option>West Bengal</option>
+              <option>Delhi</option><option>Jammu &amp; Kashmir</option><option>Ladakh</option>
+              <option>Chandigarh</option><option>Puducherry</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Pincode</label>
+            <input type="text" name="pincode" placeholder="400001" maxlength="6"/>
+          </div>
+        </div>
+        <div class="section-title" style="margin-top:8px">🧾 Tax &amp; Invoice Settings</div>
+        <div class="form-row">
+          <div class="field">
+            <label>GSTIN <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <input type="text" name="gstin" id="gstinInput" placeholder="22AAAAA0000A1Z5" maxlength="15"
+                   oninput="this.value=this.value.toUpperCase()"/>
+            <span class="hint">Leave blank if not GST registered</span>
+          </div>
+          <div class="field">
+            <label>Invoice Prefix</label>
+            <input type="text" name="invoicePrefix" placeholder="INV" value="INV" maxlength="6"
+                   oninput="this.value=this.value.toUpperCase()"/>
+            <span class="hint">e.g. INV → INV-20250101-0001</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="nextStep(1)">← Back</button>
+          <button type="button" class="btn btn-primary" onclick="nextStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- ══════════════ STEP 3: Admin Account ══════════════ -->
+      <div class="step-panel" id="panel-3">
+        <div class="section-title">🔐 Create your admin account</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Admin Full Name</label>
+            <input type="text" name="adminFullName" placeholder="e.g. Rajesh Sharma"/>
+          </div>
+          <div class="field">
+            <label>Username *</label>
+            <input type="text" name="adminUsername" id="adminUsername" placeholder="e.g. admin" required
+                   minlength="3" autocomplete="username"/>
+            <span class="hint">Min 3 characters, no spaces</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Password *</label>
+            <input type="password" name="adminPassword" id="adminPassword" placeholder="Min 6 characters"
+                   required minlength="6" autocomplete="new-password" oninput="checkPwdStrength(this.value)"/>
+            <div class="pwd-strength"><div class="pwd-strength-bar" id="strengthBar"></div></div>
+            <span class="hint" id="strengthLabel">Enter a strong password</span>
+          </div>
+          <div class="field">
+            <label>Confirm Password *</label>
+            <input type="password" id="confirmPassword" placeholder="Re-enter password"
+                   required autocomplete="new-password"/>
+          </div>
+        </div>
+
+        <!-- Summary preview -->
+        <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:18px;margin-top:8px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--primary)">📋 Registration Summary</div>
+          <ul class="check-list">
+            <li id="sum-type">Business type not selected</li>
+            <li id="sum-name">Business name not entered</li>
+            <li id="sum-admin">Admin username not set</li>
+          </ul>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="nextStep(2)">← Back</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">🚀 Register &amp; Get Started</button>
+        </div>
+      </div>
+
+    </form><!-- /regForm -->
+  </div>
+
+  <div class="login-link">
+    Already registered? <a href="/login">Sign In →</a>
+  </div>
+
+<script>
+let currentStep = 1;
+let selectedType = '';
+
+const typeLabels = {
+  RETAIL:'Retail Store', GROCERY:'Grocery Store', ELECTRONICS:'Electronics',
+  PHARMACY:'Medical / Pharma', RESTAURANT:'Restaurant / Café', CLOTHING:'Clothing / Textile',
+  WHOLESALE:'Wholesale', SERVICE:'Service Business', STATIONERY:'Stationery / Books',
+  HARDWARE:'Hardware', AUTOMOBILE:'Automobile', OTHER:'Other Business'
+};
+
+function selectType(el) {
+  document.querySelectorAll('.biz-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.type;
+  document.getElementById('bizTypeInput').value = selectedType;
+  document.getElementById('sum-type').textContent = typeLabels[selectedType] + ' selected';
+}
+
+function showAlert(msg) {
+  const b = document.getElementById('alertBox');
+  b.textContent = '⚠️ ' + msg;
+  b.classList.add('show');
+  b.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function hideAlert() { document.getElementById('alertBox').classList.remove('show'); }
+
+function nextStep(step) {
+  hideAlert();
+
+  // Validate current step before going forward
+  if (step > currentStep) {
+    if (currentStep === 1) {
+      if (!selectedType) { showAlert('Please select your business type to continue.'); return; }
+    }
+    if (currentStep === 2) {
+      const bn = document.getElementById('businessName').value.trim();
+      const ph = document.getElementById('bizPhone').value.trim();
+      if (!bn) { showAlert('Business name is required.'); return; }
+      if (!ph) { showAlert('Phone number is required.'); return; }
+      // Update summary
+      document.getElementById('sum-name').textContent = bn + ' (' + typeLabels[selectedType] + ')';
+    }
+    if (currentStep === 3) {
+      const u = document.getElementById('adminUsername').value.trim();
+      if (!u || u.length < 3) { showAlert('Username must be at least 3 characters.'); return; }
+      document.getElementById('sum-admin').textContent = 'Admin: @' + u;
+    }
+  }
+
+  // Mark done / active
+  document.getElementById('si-' + currentStep).classList.remove('active');
+  if (step > currentStep) {
+    document.getElementById('si-' + currentStep).classList.add('done');
+    if (currentStep < 3) document.getElementById('sl-' + currentStep).classList.add('done');
+  } else {
+    document.getElementById('si-' + currentStep).classList.remove('done');
+  }
+
+  document.getElementById('panel-' + currentStep).classList.remove('active');
+  currentStep = step;
+  document.getElementById('panel-' + step).classList.add('active');
+  document.getElementById('si-' + step).classList.add('active');
+  document.getElementById('si-' + step).classList.remove('done');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Password strength
+function checkPwdStrength(v) {
+  let score = 0;
+  if (v.length >= 6) score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const bar = document.getElementById('strengthBar');
+  const label = document.getElementById('strengthLabel');
+  const colors = ['','#ef4444','#f97316','#f59e0b','#84cc16','#22c55e'];
+  const labels = ['','Too weak','Weak','Fair','Strong','Very strong'];
+  bar.style.width = (score * 20) + '%';
+  bar.style.background = colors[score] || '#ef4444';
+  label.textContent = labels[score] || '';
+  label.style.color = colors[score] || 'var(--muted)';
+}
+
+// Form submission validation
+document.getElementById('regForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  hideAlert();
+
+  const pwd = document.getElementById('adminPassword').value;
+  const cpwd = document.getElementById('confirmPassword').value;
+  const u = document.getElementById('adminUsername').value.trim();
+
+  if (pwd.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
+  if (pwd !== cpwd) { showAlert('Passwords do not match. Please re-enter.'); return; }
+  if (/\s/.test(u)) { showAlert('Username cannot contain spaces.'); return; }
+
+  // Update summary before submit
+  document.getElementById('sum-admin').textContent = 'Admin: @' + u;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Setting up your business...';
+  this.submit();
+});
+
+// Update summary live
+document.getElementById('adminUsername').addEventListener('input', function() {
+  document.getElementById('sum-admin').textContent = 'Admin: @' + (this.value.trim() || '...');
+});
+
+// Show flash error from server (URL ?error=...)
+const params = new URLSearchParams(location.search);
+if (params.get('error')) showAlert(decodeURIComponent(params.get('error')));
+</script>
+</body>
+</html>

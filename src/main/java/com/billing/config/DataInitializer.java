@@ -3,9 +3,7 @@ package com.billing.config;
 import com.billing.model.Customer;
 import com.billing.model.Product;
 import com.billing.model.User;
-import com.billing.repository.CustomerRepository;
-import com.billing.repository.ProductRepository;
-import com.billing.repository.UserRepository;
+import com.billing.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -14,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Configuration
 public class DataInitializer {
@@ -21,12 +20,22 @@ public class DataInitializer {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     @Bean
-    public CommandLineRunner seedData(UserRepository users,
-                                     ProductRepository products,
-                                     CustomerRepository customers,
-                                     PasswordEncoder encoder) {
+    public CommandLineRunner seedData(BusinessProfileRepository businessRepo,
+                                      UserRepository users,
+                                      ProductRepository products,
+                                      CustomerRepository customers,
+                                      PasswordEncoder encoder) {
         return args -> {
-            // ── Users ───────────────────────────────────────────
+            // If a business is already registered, skip all seeding
+            // (users, products, walk-in customer are created during registration)
+            if (businessRepo.existsByIdNotNull()) {
+                log.info("✅ Business already registered — skipping seed data");
+                return;
+            }
+
+            // ── DEV-ONLY FALLBACK ─────────────────────────────────
+            // Seed demo users so you can log in immediately during dev.
+            // No BusinessProfile is created here — /register remains open.
             if (users.count() == 0) {
                 User admin = new User();
                 admin.setUsername("admin");
@@ -44,21 +53,17 @@ public class DataInitializer {
                 staff.setActive(true);
                 users.save(staff);
 
-                log.info("✅ Default users created (admin / staff)");
+                log.info("✅ Dev seed: admin + staff users created");
             }
 
-            // ── Walk-in Customer ────────────────────────────────
             if (customers.count() == 0) {
                 Customer walkIn = new Customer();
                 walkIn.setName("Walk-in Customer");
                 walkIn.setPhone("0000000000");
-                walkIn.setEmail("");
-                walkIn.setAddress("");
                 customers.save(walkIn);
-                log.info("✅ Walk-in customer created");
+                log.info("✅ Dev seed: Walk-in customer created");
             }
 
-            // ── Sample Products ─────────────────────────────────
             if (products.count() == 0) {
                 String[][] data = {
                     {"Laptop Dell Inspiron",  "Intel i5, 8GB RAM, 512GB SSD", "55000", "25", "18", "PCS"},
@@ -81,7 +86,7 @@ public class DataInitializer {
                     p.setActive(true);
                     products.save(p);
                 }
-                log.info("✅ {} sample products created", data.length);
+                log.info("✅ Dev seed: {} sample products created", data.length);
             }
         };
     }
