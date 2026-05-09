@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — BillingSystem Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #f59e0b;
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+    html, body {
+      height: 100%; font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.08) 0%, transparent 50%),
+                  #0f0f1a;
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    }
+    .login-wrapper {
+      display: flex; width: 880px; min-height: 540px;
+      border-radius: 24px; overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+    }
+    /* Branding */
+    .brand-panel {
+      flex: 1;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%);
+      padding: 48px 40px; display: flex; flex-direction: column; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+    .brand-panel::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: rgba(245,158,11,0.12); filter: blur(40px);
+    }
+    .brand-logo { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 8px 24px rgba(245,158,11,0.4); flex-shrink: 0;
+    }
+    .brand-name { font-size: 20px; font-weight: 700; }
+    .brand-name span { color: #f59e0b; }
+    .brand-tagline { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+    .brand-hero h1 {
+      font-size: 34px; font-weight: 800; line-height: 1.2; letter-spacing: -1px;
+      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .brand-hero p { color: rgba(255,255,255,0.55); font-size: 14px; margin-top: 12px; line-height: 1.6; }
+    .features { display: flex; flex-direction: column; gap: 10px; }
+    .feature {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.07); border-radius: 10px;
+      padding: 10px 14px; font-size: 13px; color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    /* Form panel */
+    .form-panel {
+      flex: 1; background: #1a1a2e; padding: 48px 44px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .form-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .form-sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input {
+      width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 12px 15px; font-size: 15px; color: #fff;
+      font-family: 'Inter', sans-serif; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+    .field input::placeholder { color: rgba(255,255,255,0.2); }
+    .btn-submit {
+      width: 100%; padding: 13px; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+      font-size: 15px; font-weight: 700; font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.45); margin-top: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(99,102,241,0.55); }
+    .error-box {
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #fca5a5;
+      margin-bottom: 18px;
+    }
+    .hint-box {
+      margin-top: 24px; padding: 14px 16px;
+      background: rgba(99,102,241,0.08); border-radius: 10px;
+      border: 1px solid rgba(99,102,241,0.18);
+      font-size: 12px; color: var(--muted); line-height: 1.8;
+    }
+    .hint-box strong { color: #e2e8f0; }
+    @media (max-width: 700px) {
+      .login-wrapper { flex-direction: column; width: 95vw; }
+      .brand-panel { min-height: 200px; padding: 28px 20px; }
+      .brand-hero h1 { font-size: 24px; }
+      .form-panel { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="brand-panel">
+      <div class="brand-logo">
+        <div class="brand-icon">🧾</div>
+        <div>
+          <div class="brand-name">Billing<span>System</span> Pro</div>
+          <div class="brand-tagline">GST-Ready Business Solution</div>
+        </div>
+      </div>
+      <div class="brand-hero">
+        <h1>Manage Your<br/>Business Smarter</h1>
+        <p>Create GST invoices, track inventory, manage customers and generate reports — all in one place.</p>
+      </div>
+      <div class="features">
+        <div class="feature">🧾 &nbsp;GST-compliant invoicing</div>
+        <div class="feature">📦 &nbsp;Real-time inventory tracking</div>
+        <div class="feature">📊 &nbsp;Daily &amp; monthly reports</div>
+      </div>
+    </div>
+
+    <div class="form-panel">
+      <div class="form-title">Welcome back 👋</div>
+      <div class="form-sub">Sign in to your account to continue</div>
+
+      <!-- Spring Security renders ?error on bad login -->
+      <div th:if="${param.error}" class="error-box">
+        ⚠️ Invalid username or password. Please try again.
+      </div>
+      <!-- Fallback for non-Thymeleaf (static serving) -->
+      <div id="errBox" class="error-box" style="display:none">
+        ⚠️ Invalid username or password. Please try again.
+      </div>
+
+      <!-- Spring Security processes POST /login itself -->
+      <form method="POST" action="/login">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username"
+                 placeholder="Enter your username" required
+                 autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+                 placeholder="Enter your password" required
+                 autocomplete="current-password"/>
+        </div>
+        <button type="submit" class="btn-submit" id="signInBtn">
+          Sign In &rarr;
+        </button>
+      </form>
+
+      <div class="hint-box">
+        <strong>Demo Credentials</strong><br/>
+        Admin: &nbsp;<strong>admin</strong> / <strong>admin123</strong><br/>
+        Staff: &nbsp;&nbsp;<strong>staff</strong> / <strong>staff123</strong>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Show error message if URL has ?error
+    if (new URLSearchParams(location.search).get('error') !== null) {
+      document.getElementById('errBox').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
