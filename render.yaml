@@ -1,0 +1,36 @@
+# ============================================================
+# Render.com Deployment Configuration
+# This file tells Render how to build and run the app
+# ============================================================
+
+services:
+  - type: web
+    name: billing-system-pro
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free          # free tier (sleeps after 15 min inactivity)
+
+    # Environment variables — set these in Render dashboard too
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 8080
+
+      # Database — fill these from your Aiven/PlanetScale dashboard
+      - key: DATABASE_URL
+        sync: false     # marked sync:false = enter manually in dashboard
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+
+      # Customize for your business
+      - key: APP_COMPANY
+        value: Your Business Name
+      - key: APP_ADDRESS
+        value: "123 Main Street, Your City - 000000"
+      - key: APP_PHONE
+        value: "+91-XXXXXXXXXX"
+      - key: APP_GSTIN
+        value: GSTIN_NUMBER
