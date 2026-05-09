@@ -39,15 +39,17 @@ public class BillingService {
 
     // ── Dashboard ──────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getDashboardData() {
-        java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
-        java.time.LocalDateTime startOfNextDay = startOfDay.plusDays(1);
+        java.time.LocalDateTime startOfDay  = java.time.LocalDate.now().atStartOfDay();
+        java.time.LocalDateTime startOfNext = startOfDay.plusDays(1);
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("todayRevenue", orderRepository.getTodayRevenue(startOfDay, startOfNextDay));
-        data.put("todayBillCount", orderRepository.getTodayBillCount(startOfDay, startOfNextDay));
-        data.put("productCount", productRepository.countActive());
-        data.put("customerCount", customerRepository.countAll());
-        data.put("recentOrders", orderRepository.findTop10ByOrderByCreatedAtDesc()
+        data.put("todayRevenue",  orderRepository.getTodayRevenue(startOfDay, startOfNext,
+                                    Order.PaymentStatus.PAID));
+        data.put("todayBillCount", orderRepository.getTodayBillCount(startOfDay, startOfNext));
+        data.put("productCount",   productRepository.countActive());
+        data.put("customerCount",  customerRepository.countAll());
+        data.put("recentOrders",   orderRepository.findTop10ByOrderByCreatedAtDesc()
                 .stream().map(this::orderToMap).toList());
         return data;
     }
@@ -161,26 +163,47 @@ public class BillingService {
     // ── Reports ────────────────────────────────────────────────
 
     public List<Map<String, Object>> getDailyReport() {
-        return orderRepository.getDailyReport().stream().map(row -> {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("date", row[0]);
-            m.put("billCount", row[1]);
-            m.put("revenue", row[2]);
-            m.put("gst", row[3]);
-            return m;
-        }).toList();
+        List<Order> orders = orderRepository.findNonCancelledOrders(Order.PaymentStatus.CANCELLED);
+        // Group by date in Java to avoid H2/MySQL CAST dialect differences
+        Map<java.time.LocalDate, List<Order>> byDate = orders.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        o -> o.getCreatedAt().toLocalDate()));
+        return byDate.entrySet().stream()
+                .sorted(java.util.Map.Entry.<java.time.LocalDate, List<Order>>comparingByKey().reversed())
+                .map(e -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("date", e.getKey().toString());
+                    m.put("billCount", e.getValue().size());
+                    m.put("revenue",   e.getValue().stream().map(Order::getTotalAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                    m.put("gst",       e.getValue().stream().map(Order::getTotalGst)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                    return m;
+                }).toList();
     }
 
     public List<Map<String, Object>> getMonthlyReport() {
-        return orderRepository.getMonthlyReport().stream().map(row -> {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("year", row[0]);
-            m.put("month", row[1]);
-            m.put("billCount", row[2]);
-            m.put("revenue", row[3]);
-            m.put("gst", row[4]);
-            return m;
-        }).toList();
+        List<Order> orders = orderRepository.findNonCancelledOrders(Order.PaymentStatus.CANCELLED);
+        record YM(int year, int month) {}
+        Map<YM, List<Order>> byMonth = orders.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        o -> new YM(o.getCreatedAt().getYear(), o.getCreatedAt().getMonthValue())));
+        return byMonth.entrySet().stream()
+                .sorted((a, b) -> {
+                    int c = Integer.compare(b.getKey().year(), a.getKey().year());
+                    return c != 0 ? c : Integer.compare(b.getKey().month(), a.getKey().month());
+                })
+                .map(e -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("year",      e.getKey().year());
+                    m.put("month",     e.getKey().month());
+                    m.put("billCount", e.getValue().size());
+                    m.put("revenue",   e.getValue().stream().map(Order::getTotalAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                    m.put("gst",       e.getValue().stream().map(Order::getTotalGst)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                    return m;
+                }).toList();
     }
 
     // ── Private helpers ────────────────────────────────────────

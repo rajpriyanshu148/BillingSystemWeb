@@ -52,7 +52,12 @@ public class ApiController {
     // ── Dashboard ───────────────────────────────────────────────
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
-        return ResponseEntity.ok(billingService.getDashboardData());
+        try {
+            return ResponseEntity.ok(billingService.getDashboardData());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage(), "cause", e.getClass().getSimpleName()));
+        }
     }
 
     // ── Products ────────────────────────────────────────────────

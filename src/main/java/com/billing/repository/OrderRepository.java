@@ -3,10 +3,11 @@ package com.billing.repository;
 import com.billing.model.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,22 +18,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findTop10ByOrderByCreatedAtDesc();
 
+    // ── Dashboard ──────────────────────────────────────────────────────────
+
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o " +
-           "WHERE o.createdAt >= :startOfDay AND o.createdAt < :startOfNextDay AND o.paymentStatus = 'PAID'")
-    BigDecimal getTodayRevenue(java.time.LocalDateTime startOfDay, java.time.LocalDateTime startOfNextDay);
+           "WHERE o.createdAt >= :start AND o.createdAt < :end " +
+           "AND o.paymentStatus = :paid")
+    BigDecimal getTodayRevenue(
+            @Param("start") LocalDateTime start,
+            @Param("end")   LocalDateTime end,
+            @Param("paid")  Order.PaymentStatus paid);
 
-    @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt >= :startOfDay AND o.createdAt < :startOfNextDay")
-    long getTodayBillCount(java.time.LocalDateTime startOfDay, java.time.LocalDateTime startOfNextDay);
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt >= :start AND o.createdAt < :end")
+    long getTodayBillCount(
+            @Param("start") LocalDateTime start,
+            @Param("end")   LocalDateTime end);
 
-    @Query("SELECT YEAR(o.createdAt), MONTH(o.createdAt), " +
-           "COUNT(o), SUM(o.totalAmount), SUM(o.totalGst) " +
-           "FROM Order o WHERE o.paymentStatus != 'CANCELLED' " +
-           "GROUP BY YEAR(o.createdAt), MONTH(o.createdAt) " +
-           "ORDER BY YEAR(o.createdAt) DESC, MONTH(o.createdAt) DESC")
-    List<Object[]> getMonthlyReport();
+    // ── Reports — using ORDER BY createdAt for grouping compatibility ─────
 
-    @Query("SELECT CAST(o.createdAt AS date), COUNT(o), SUM(o.totalAmount), SUM(o.totalGst) " +
-           "FROM Order o WHERE o.paymentStatus != 'CANCELLED' " +
-           "GROUP BY CAST(o.createdAt AS date) ORDER BY CAST(o.createdAt AS date) DESC")
-    List<Object[]> getDailyReport();
+    @Query("SELECT o FROM Order o WHERE o.paymentStatus <> :cancelled ORDER BY o.createdAt DESC")
+    List<Order> findNonCancelledOrders(@Param("cancelled") Order.PaymentStatus cancelled);
 }
