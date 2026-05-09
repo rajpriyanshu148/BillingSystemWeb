@@ -92,10 +92,14 @@
       <!-- BILLING -->
       <section class="page" id="page-billing">
         <div class="billing-layout">
+
+          <!-- LEFT COLUMN -->
           <div class="billing-left">
+
+            <!-- Customer & Payment -->
             <div class="card">
               <div class="card-header">
-                <h2 class="card-title">Customer & Payment</h2>
+                <h2 class="card-title">Customer &amp; Payment</h2>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -115,26 +119,32 @@
                 </div>
               </div>
             </div>
-            <div class="card mt-16">
+
+            <!-- Add Product -->
+            <div class="card">
               <div class="card-header">
                 <h2 class="card-title">Add Product</h2>
               </div>
-              <div class="form-row">
-                <div class="form-group flex-2">
+              <div class="form-row" style="align-items:flex-end">
+                <!-- Search product with overflow-visible wrapper -->
+                <div class="product-search-wrap">
                   <label>Search Product</label>
-                  <input type="text" id="productSearch" class="form-input" placeholder="Type to search…"/>
+                  <input type="text" id="productSearch" class="form-input" placeholder="Type to search menu item…" autocomplete="off"/>
                   <div class="autocomplete-list" id="autocompleteList"></div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="flex:0 0 80px">
                   <label>Qty</label>
                   <input type="number" id="billQty" class="form-input" value="1" min="1" style="width:80px"/>
                 </div>
-                <div class="form-group align-end">
-                  <button class="btn btn-primary" id="addToCartBtn" onclick="addToCart()">Add</button>
+                <div class="form-group" style="flex:0 0 auto">
+                  <label style="visibility:hidden">&nbsp;</label>
+                  <button class="btn btn-primary" id="addToCartBtn" onclick="addToCart()">✔ Add</button>
                 </div>
               </div>
             </div>
-            <div class="card mt-16">
+
+            <!-- Cart -->
+            <div class="card">
               <div class="card-header">
                 <h2 class="card-title">Cart</h2>
                 <button class="btn btn-ghost btn-sm" onclick="clearCart()">Clear All</button>
@@ -148,32 +158,47 @@
                 </table>
               </div>
             </div>
-          </div>
+          </div><!-- end billing-left -->
+
+          <!-- RIGHT COLUMN: Bill Summary -->
           <div class="billing-right">
             <div class="card bill-summary">
-              <div class="card-header"><h2 class="card-title">Bill Summary</h2></div>
+              <div class="card-header">
+                <h2 class="card-title">🧾 Bill Summary</h2>
+              </div>
+
               <div class="summary-rows">
-                <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">₹0.00</span></div>
-                <div class="summary-row"><span>GST</span><span id="sumGst">₹0.00</span></div>
+                <div class="summary-row">
+                  <span>Subtotal</span><span id="sumSubtotal">₹0.00</span>
+                </div>
+                <div class="summary-row">
+                  <span>GST</span><span id="sumGst">₹0.00</span>
+                </div>
                 <div class="summary-row discount-row">
                   <span>Discount</span>
                   <input type="number" id="billDiscount" class="form-input discount-input" value="0" min="0" step="0.01" oninput="updateSummary()"/>
                 </div>
-                <div class="summary-row total-row">
-                  <span>Total</span><span id="sumTotal">₹0.00</span>
+              </div>
+
+              <div class="total-row">
+                <span>Total</span><span id="sumTotal">₹0.00</span>
+              </div>
+
+              <div class="bill-actions">
+                <div class="form-group">
+                  <label>Notes</label>
+                  <textarea id="billNotes" class="form-input" rows="2" placeholder="Table no., delivery note…"></textarea>
                 </div>
+                <button class="btn btn-primary btn-full" id="saveBillBtn" onclick="saveBill()">
+                  💾 Save &amp; Generate Invoice
+                </button>
+                <button class="btn btn-ghost btn-full" onclick="clearCart()">🗑️ Clear Bill</button>
               </div>
-              <div class="form-group mt-16">
-                <label>Notes</label>
-                <textarea id="billNotes" class="form-input" rows="2" placeholder="Optional note…"></textarea>
-              </div>
-              <button class="btn btn-primary btn-full mt-16" id="saveBillBtn" onclick="saveBill()">
-                💾 Save & Generate Invoice
-              </button>
-              <button class="btn btn-ghost btn-full mt-8" onclick="clearCart()">🗑️ Clear Bill</button>
             </div>
-          </div>
-        </div>
+          </div><!-- end billing-right -->
+
+        </div><!-- end billing-layout -->
+
         <!-- Invoice Preview Modal -->
         <div class="modal-overlay hidden" id="invoiceModal">
           <div class="modal invoice-modal">

@@ -129,23 +129,145 @@ async function loadBillingPage() {
 
 function setupProductSearch() {
   const input = document.getElementById('productSearch');
-  const list = document.getElementById('autocompleteList');
+  if (!input) return;
+
+  // Create portal dropdown attached to <body> to escape all overflow:hidden contexts
+  let dropdown = document.getElementById('searchDropdownPortal');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.id = 'searchDropdownPortal';
+    dropdown.className = 'autocomplete-list';
+    document.body.appendChild(dropdown);
+  }
+
+  function positionDropdown() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top  = (rect.bottom + 4) + 'px';
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.width = rect.width + 'px';
+    dropdown.style.zIndex = '99999';
+  }
+
+  function openDropdown(matches) {
+    dropdown.innerHTML = matches.map(p => {
+      const sc = p.quantity < 5 ? 'color:#f87171' : 'color:var(--muted)';
+      return '<div class="autocomplete-item" data-id="' + p.id + '" onclick="selectProduct(' + p.id + ')">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="item-name">' + p.name + '</div>' +
+          '<div class="item-meta">' + p.unit + ' &nbsp;&middot;&nbsp; <span style="' + sc + '">Stock: ' + p.quantity + '</span></div>' +
+        '</div>' +
+        '<div class="item-price">' + fmt(p.price) + '<br>' +
+          '<span style="font-size:10px;color:var(--muted);font-weight:500">+' + p.gstPercent + '% GST</span>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+    positionDropdown();
+    dropdown.classList.add('open');
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('open');
+  }
+
+  input.addEventListener('input', () => {
+    const kw = input.value.toLowerCase().trim();
+    if (!kw) { closeDropdown(); return; }
+
+    const matches = state.products
+      .filter(p => p.name.toLowerCase().includes(kw) ||
+                   (p.description && p.description.toLowerCase().includes(kw)))
+      .slice(0, 10);
+
+    if (!matches.length) { closeDropdown(); return; }
+    openDropdown(matches);
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.autocomplete-item');
+    if (!items.length) return;
+    const cur = dropdown.querySelector('.autocomplete-item.selected');
+    let idx = Array.from(items).indexOf(cur);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (cur) cur.classList.remove('selected');
+      items[Math.min(idx + 1, items.length - 1)].classList.add('selected');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (cur) cur.classList.remove('selected');
+      items[Math.max(idx - 1, 0)].classList.add('selected');
+    } else if (e.key === 'Enter') {
+      const sel = dropdown.querySelector('.autocomplete-item.selected');
+      if (sel) { e.preventDefault(); sel.click(); }
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  // Keep dropdown aligned when scrolling/resizing
+  window.addEventListener('scroll', positionDropdown, true);
+  window.addEventListener('resize', positionDropdown);
+
+  document.addEventListener('click', e => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target))
+      closeDropdown();
+  });
+}
+  const input = document.getElementById('productSearch');
+  const list  = document.getElementById('autocompleteList');
+  if (!input || !list) return;
 
   input.addEventListener('input', () => {
     const kw = input.value.toLowerCase().trim();
     if (!kw) { list.classList.remove('open'); return; }
-    const matches = state.products.filter(p => p.name.toLowerCase().includes(kw)).slice(0, 8);
+
+    const matches = state.products
+      .filter(p => p.name.toLowerCase().includes(kw) ||
+                   (p.description && p.description.toLowerCase().includes(kw)))
+      .slice(0, 10);
+
     if (!matches.length) { list.classList.remove('open'); return; }
-    list.innerHTML = matches.map(p => `
-      <div class="autocomplete-item" onclick="selectProduct(${p.id})">
-        <span>${p.name} <small style="color:var(--muted);font-size:11px">(${p.unit})</small></span>
-        <span class="item-price">${fmt(p.price)} + ${p.gstPercent}% GST</span>
-      </div>`).join('');
+
+    list.innerHTML = matches.map(p => {
+      const sc = p.quantity < 5 ? 'color:#f87171' : 'color:var(--muted)';
+      return '<div class="autocomplete-item" data-id="' + p.id + '" onclick="selectProduct(' + p.id + ')">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="item-name">' + p.name + '</div>' +
+          '<div class="item-meta">' + p.unit + ' &nbsp;&middot;&nbsp; <span style="' + sc + '">Stock: ' + p.quantity + '</span></div>' +
+        '</div>' +
+        '<div class="item-price">' + fmt(p.price) + '<br>' +
+          '<span style="font-size:10px;color:var(--muted);font-weight:500">+' + p.gstPercent + '% GST</span>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+
     list.classList.add('open');
   });
 
+  input.addEventListener('keydown', e => {
+    const items = list.querySelectorAll('.autocomplete-item');
+    if (!items.length) return;
+    const cur = list.querySelector('.autocomplete-item.selected');
+    let idx = Array.from(items).indexOf(cur);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (cur) cur.classList.remove('selected');
+      items[Math.min(idx + 1, items.length - 1)].classList.add('selected');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (cur) cur.classList.remove('selected');
+      items[Math.max(idx - 1, 0)].classList.add('selected');
+    } else if (e.key === 'Enter') {
+      const sel = list.querySelector('.autocomplete-item.selected');
+      if (sel) { e.preventDefault(); sel.click(); }
+    } else if (e.key === 'Escape') {
+      list.classList.remove('open');
+    }
+  });
+
   document.addEventListener('click', e => {
-    if (!input.contains(e.target) && !list.contains(e.target)) list.classList.remove('open');
+    if (!input.contains(e.target) && !list.contains(e.target))
+      list.classList.remove('open');
   });
 }
 
@@ -154,7 +276,7 @@ function selectProduct(id) {
   if (!p) return;
   state.selectedProduct = p;
   document.getElementById('productSearch').value = p.name;
-  document.getElementById('autocompleteList').classList.remove('open');
+  const dl = document.getElementById('searchDropdownPortal'); if(dl) dl.classList.remove('open');
   document.getElementById('billQty').focus();
 }
 

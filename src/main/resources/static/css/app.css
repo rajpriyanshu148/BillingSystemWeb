@@ -114,8 +114,11 @@ body { display: flex; overflow-x: hidden; }
 /* ── Cards ─────────────────────────────────────────────────── */
 .card {
   background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: var(--radius); overflow: hidden;
+  border-radius: var(--radius);
+  /* Do NOT set overflow:hidden — breaks autocomplete dropdowns */
 }
+/* Only clip overflow where actually needed (tables) */
+.card .table-wrap { border-radius: 0 0 var(--radius) var(--radius); overflow-x: auto; }
 .card-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px; border-bottom: 1px solid var(--border);
@@ -191,33 +194,120 @@ textarea.form-input { resize: vertical; min-height: 60px; }
 .form-grid .span-2 { grid-column: span 2; }
 
 /* ── Billing Layout ─────────────────────────────────────────── */
-.billing-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
-.billing-right { position: sticky; top: calc(var(--topbar-h) + 24px); align-self: start; }
-.bill-summary .summary-rows { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
-.summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-.summary-row span:first-child { color: var(--muted2); }
-.summary-row span:last-child { font-weight: 600; }
-.total-row { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
-.total-row span:first-child { font-size: 16px; font-weight: 700; color: var(--text); }
-.total-row span:last-child { font-size: 22px; font-weight: 800; color: var(--primary-light); }
-.discount-row { gap: 12px; }
-.discount-input { width: 100px !important; padding: 6px 10px !important; text-align: right; }
-.bill-summary .form-group, .bill-summary .btn { margin: 0 20px; }
-
-/* ── Autocomplete ───────────────────────────────────────────── */
-.autocomplete-list {
-  position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
-  background: var(--card-bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
-  max-height: 200px; overflow-y: auto; box-shadow: var(--shadow-lg); display: none;
+.billing-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
 }
-.autocomplete-item {
-  padding: 10px 14px; cursor: pointer; font-size: 13px; color: var(--text2);
-  border-bottom: 1px solid var(--border); transition: background 0.1s;
+.billing-left { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+/* Remove mt-16 spacers since billing-left now uses gap */
+.billing-left .mt-16 { margin-top: 0; }
+
+.billing-right {
+  position: sticky;
+  top: calc(var(--topbar-h) + 24px);
+  align-self: start;
+}
+
+/* Bill Summary Card — full self-contained panel */
+.bill-summary {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.bill-summary .card-header {
+  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04));
+  border-bottom: 1px solid var(--border2);
+  padding: 16px 20px;
+}
+.bill-summary .card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Summary rows */
+.summary-rows { padding: 20px; display: flex; flex-direction: column; gap: 0; }
+.summary-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.summary-row:last-of-type { border-bottom: none; }
+.summary-row span:first-child { color: var(--muted2); font-weight: 500; }
+.summary-row span:last-child { font-weight: 600; color: var(--text); }
+
+.total-row {
+  margin-top: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(79,70,229,0.06));
+  border-top: 1px solid rgba(99,102,241,0.2);
+  border-radius: 0 0 var(--radius) var(--radius);
   display: flex; justify-content: space-between; align-items: center;
 }
+.total-row span:first-child { font-size: 15px; font-weight: 700; color: var(--text); }
+.total-row span:last-child { font-size: 26px; font-weight: 800; color: var(--primary-light); letter-spacing: -1px; }
+
+.discount-row { gap: 12px; border-bottom: none !important; }
+.discount-input { width: 90px !important; padding: 5px 8px !important; text-align: right; font-size: 13px !important; }
+
+/* Notes + actions section */
+.bill-actions { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border); }
+.bill-actions .form-group label { font-size: 12px; color: var(--muted2); font-weight: 500; }
+.bill-actions textarea { resize: none; min-height: 56px; font-size: 13px; }
+
+/* ── Autocomplete ───────────────────────────────────────────── */
+/* Wrapper must be position:relative so we can portal the dropdown */
+.product-search-wrap { position: relative; flex: 2; }
+.product-search-wrap label { font-size: 12px; font-weight: 500; color: var(--muted2); display: block; margin-bottom: 6px; }
+
+.autocomplete-list {
+  /* Positioned relative to .product-search-wrap, not the card */
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 9999;                          /* above everything */
+  background: #1e2040;
+  border: 1px solid rgba(99,102,241,0.35);
+  border-radius: var(--radius-sm);
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(99,102,241,0.15);
+  display: none;
+  backdrop-filter: blur(8px);
+}
+.autocomplete-item {
+  padding: 11px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.12s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
 .autocomplete-item:last-child { border-bottom: none; }
-.autocomplete-item:hover, .autocomplete-item.selected { background: rgba(99,102,241,0.15); color: var(--text); }
-.autocomplete-item .item-price { color: var(--primary-light); font-weight: 600; }
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+  background: rgba(99,102,241,0.18);
+  color: var(--text);
+}
+.autocomplete-item .item-name { flex: 1; font-weight: 500; }
+.autocomplete-item .item-meta { font-size: 11px; color: var(--muted); }
+.autocomplete-item .item-price {
+  color: var(--primary-light);
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
 .autocomplete-list.open { display: block; }
 
 /* ── Modals ─────────────────────────────────────────────────── */
@@ -283,10 +373,14 @@ textarea.form-input { resize: vertical; min-height: 60px; }
 .search-wrap { flex: 1; max-width: 320px; }
 
 /* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .billing-layout { grid-template-columns: 1fr 290px; }
+}
 @media (max-width: 900px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .billing-layout { grid-template-columns: 1fr; }
   .billing-right { position: static; }
+  .total-row { border-radius: 0; }
 }
 @media (max-width: 700px) {
   .sidebar { transform: translateX(-100%); }
