@@ -35,9 +35,6 @@ public class RegistrationController {
     /** Show registration page — only if no business registered yet */
     @GetMapping("/register")
     public String registerPage() {
-        if (businessRepo.existsByIdNotNull()) {
-            return "redirect:/login";   // already registered
-        }
         return "forward:/register.html";
     }
 
@@ -63,11 +60,6 @@ public class RegistrationController {
             @RequestParam String adminFullName,
             RedirectAttributes ra) {
 
-        // Guard: already registered
-        if (businessRepo.existsByIdNotNull()) {
-            return "redirect:/login";
-        }
-
         // Validate
         if (businessName == null || businessName.trim().isEmpty()) {
             ra.addFlashAttribute("error", "Business name is required.");
@@ -87,6 +79,7 @@ public class RegistrationController {
         }
 
         // 1. Save business profile
+        businessRepo.deleteAll();
         BusinessProfile biz = new BusinessProfile();
         biz.setBusinessName(businessName.trim());
         biz.setBusinessType(businessType);

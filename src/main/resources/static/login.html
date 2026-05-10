@@ -97,6 +97,11 @@
       border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #86efac;
       margin-bottom: 18px;
     }
+    .error-box {
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #fca5a5;
+      margin-bottom: 18px;
+    }
     .hint-box {
       margin-top: 24px; padding: 14px 16px;
       background: rgba(99,102,241,0.08); border-radius: 10px;
@@ -142,11 +147,6 @@
         ✅ Business registered successfully! Please sign in.
       </div>
 
-      <!-- Spring Security renders ?error on bad login -->
-      <div th:if="${param.error}" class="error-box">
-        ⚠️ Invalid username or password. Please try again.
-      </div>
-      <!-- Fallback for non-Thymeleaf (static serving) -->
       <div id="errBox" class="error-box" style="display:none">
         ⚠️ Invalid username or password. Please try again.
       </div>
@@ -170,12 +170,6 @@
         </button>
       </form>
 
-      <div class="hint-box">
-        <strong>Demo Credentials</strong><br/>
-        Admin: &nbsp;<strong>admin</strong> / <strong>admin123</strong><br/>
-        Staff: &nbsp;&nbsp;<strong>staff</strong> / <strong>staff123</strong>
-      </div>
-
       <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted)">
         New here? <a href="/register" style="color:#6366f1;font-weight:600;text-decoration:none">Register your business →</a>
       </div>
@@ -184,7 +178,16 @@
 
   <script>
     const p = new URLSearchParams(location.search);
-    if (p.get('error') !== null) document.getElementById('errBox').style.display = 'block';
+    const errBox = document.getElementById('errBox');
+    if (p.get('error') !== null) {
+      errBox.style.display = 'block';
+      setTimeout(() => { errBox.style.display = 'none'; }, 4000);
+      document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+          errBox.style.display = 'none';
+        });
+      });
+    }
     if (p.get('registered') !== null) document.getElementById('successBox').style.display = 'block';
   </script>
 </body>
