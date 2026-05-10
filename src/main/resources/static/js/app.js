@@ -28,7 +28,10 @@ async function loadAppInfo() {
     document.getElementById('userName').textContent = info.username;
     document.getElementById('userRole').textContent = info.isAdmin ? 'Administrator' : 'Staff';
     document.getElementById('userAvatar').textContent = info.username.charAt(0).toUpperCase();
-    document.getElementById('companyName').textContent = info.company;
+    const cntEl = document.getElementById('companyNameText');
+    if (cntEl) cntEl.textContent = info.company;
+    else if (document.getElementById('companyName'))
+      document.getElementById('companyName').textContent = info.company;
   } catch (e) { /* ignore */ }
 }
 
@@ -41,7 +44,7 @@ function navigate(page) {
   if (navEl) navEl.classList.add('active');
   state.currentPage = page;
 
-  const titles = { dashboard: 'Dashboard', billing: 'New Bill', products: 'Products', customers: 'Customers', reports: 'Reports' };
+  const titles = { dashboard: 'Dashboard', billing: 'New Bill', products: 'Products', customers: 'Customers', reports: 'Reports', profile: 'Profile & Settings' };
   document.getElementById('pageTitle').textContent = titles[page] || page;
 
   if (page === 'dashboard') loadDashboard();
@@ -49,6 +52,7 @@ function navigate(page) {
   if (page === 'products') loadProducts();
   if (page === 'customers') loadCustomers();
   if (page === 'reports') loadReports();
+  if (page === 'profile') loadProfile();
 
   // Close sidebar on mobile
   document.getElementById('sidebar').classList.remove('open');
@@ -211,63 +215,6 @@ function setupProductSearch() {
   document.addEventListener('click', e => {
     if (!input.contains(e.target) && !dropdown.contains(e.target))
       closeDropdown();
-  });
-}
-  const input = document.getElementById('productSearch');
-  const list  = document.getElementById('autocompleteList');
-  if (!input || !list) return;
-
-  input.addEventListener('input', () => {
-    const kw = input.value.toLowerCase().trim();
-    if (!kw) { list.classList.remove('open'); return; }
-
-    const matches = state.products
-      .filter(p => p.name.toLowerCase().includes(kw) ||
-                   (p.description && p.description.toLowerCase().includes(kw)))
-      .slice(0, 10);
-
-    if (!matches.length) { list.classList.remove('open'); return; }
-
-    list.innerHTML = matches.map(p => {
-      const sc = p.quantity < 5 ? 'color:#f87171' : 'color:var(--muted)';
-      return '<div class="autocomplete-item" data-id="' + p.id + '" onclick="selectProduct(' + p.id + ')">' +
-        '<div style="flex:1;min-width:0">' +
-          '<div class="item-name">' + p.name + '</div>' +
-          '<div class="item-meta">' + p.unit + ' &nbsp;&middot;&nbsp; <span style="' + sc + '">Stock: ' + p.quantity + '</span></div>' +
-        '</div>' +
-        '<div class="item-price">' + fmt(p.price) + '<br>' +
-          '<span style="font-size:10px;color:var(--muted);font-weight:500">+' + p.gstPercent + '% GST</span>' +
-        '</div>' +
-        '</div>';
-    }).join('');
-
-    list.classList.add('open');
-  });
-
-  input.addEventListener('keydown', e => {
-    const items = list.querySelectorAll('.autocomplete-item');
-    if (!items.length) return;
-    const cur = list.querySelector('.autocomplete-item.selected');
-    let idx = Array.from(items).indexOf(cur);
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (cur) cur.classList.remove('selected');
-      items[Math.min(idx + 1, items.length - 1)].classList.add('selected');
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (cur) cur.classList.remove('selected');
-      items[Math.max(idx - 1, 0)].classList.add('selected');
-    } else if (e.key === 'Enter') {
-      const sel = list.querySelector('.autocomplete-item.selected');
-      if (sel) { e.preventDefault(); sel.click(); }
-    } else if (e.key === 'Escape') {
-      list.classList.remove('open');
-    }
-  });
-
-  document.addEventListener('click', e => {
-    if (!input.contains(e.target) && !list.contains(e.target))
-      list.classList.remove('open');
   });
 }
 
@@ -700,4 +647,58 @@ async function api(url, options = {}) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
+}
+
+// -- Profile & Password -------------------------------------------
+function loadProfile() {
+  const info = state.appInfo;
+  if (!info) return;
+
+  function set(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || 'N/A';
+  }
+
+  set('pi-company', info.company);
+  set('pi-type',    info.businessType);
+  set('pi-owner',   info.ownerName);
+  set('pi-phone',   info.phone);
+  set('pi-email',   info.email);
+  set('pi-address', info.address);
+  set('pi-gstin',   info.gstin);
+  set('pi-prefix',  info.prefix);
+
+  // Highlight company name
+  const el = document.getElementById('pi-company');
+  if (el) el.classList.add('highlight');
+}
+
+async function changePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newPwd   = document.getElementById('pwNew').value;
+  const confirm  = document.getElementById('pwConfirm').value;
+
+  if (!current) { toast('Enter your current password', 'error'); return; }
+  if (!newPwd || newPwd.length < 6) { toast('New password must be at least 6 characters', 'error'); return; }
+  if (newPwd !== confirm) { toast('Passwords do not match', 'error'); return; }
+
+  const btn = document.getElementById('changePwBtn');
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+
+  try {
+    const res = await api('/api/profile/password', {
+      method: 'POST',
+      body: { currentPassword: current, newPassword: newPwd }
+    });
+    toast(res.message || 'Password changed!', 'success');
+    document.getElementById('pwCurrent').value = '';
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwConfirm').value = '';
+  } catch (ex) {
+    toast(ex.message || 'Failed to change password', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
+  }
 }

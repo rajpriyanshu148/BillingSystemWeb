@@ -7,7 +7,7 @@
   <meta name="description" content="GST-ready billing and invoicing system for Indian businesses"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/css/app.css"/>
+  <link rel="stylesheet" href="/css/app.css?v=1778442199"/>
 </head>
 <body>
   <!-- Sidebar -->
@@ -37,9 +37,12 @@
       <a href="#" class="nav-item" data-page="reports" id="nav-reports">
         <span class="nav-icon">📈</span><span class="nav-label">Reports</span>
       </a>
+      <a href="#" class="nav-item" data-page="profile" id="nav-profile">
+        <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+      </a>
     </nav>
     <div class="sidebar-footer">
-      <div class="user-info">
+      <div class="user-info" onclick="navigate('profile')" style="cursor:pointer;flex:1" title="View Profile">
         <div class="user-avatar" id="userAvatar">A</div>
         <div class="user-details">
           <div class="user-name" id="userName">Admin</div>
@@ -58,7 +61,11 @@
         <h1 class="page-title" id="pageTitle">Dashboard</h1>
       </div>
       <div class="topbar-right">
-        <div class="company-name" id="companyName">BillingSystem Pro</div>
+        <div class="company-badge" id="companyName">
+          <span class="company-dot">🏪</span>
+          <span id="companyNameText">Loading…</span>
+        </div>
+        <a href="#" class="topbar-profile-btn" onclick="navigate('profile')" title="Profile &amp; Settings">⚙️</a>
       </div>
     </header>
 
@@ -368,12 +375,85 @@
           </div>
         </div>
       </section>
-    </div>
+
+      <!-- PROFILE -->
+      <section class="page" id="page-profile">
+        <div class="profile-layout">
+
+          <!-- Business Info Card -->
+          <div class="card profile-card">
+            <div class="card-header">
+              <h2 class="card-title">🏪 Business Information</h2>
+            </div>
+            <div class="profile-info" id="profileInfo">
+              <div class="profile-info-row">
+                <span class="pi-label">Business Name</span>
+                <span class="pi-value" id="pi-company">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">Business Type</span>
+                <span class="pi-value" id="pi-type">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">Owner</span>
+                <span class="pi-value" id="pi-owner">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">Phone</span>
+                <span class="pi-value" id="pi-phone">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">Email</span>
+                <span class="pi-value" id="pi-email">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">Address</span>
+                <span class="pi-value" id="pi-address">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">GSTIN</span>
+                <span class="pi-value" id="pi-gstin">—</span>
+              </div>
+              <div class="profile-info-row">
+                <span class="pi-label">Invoice Prefix</span>
+                <span class="pi-value" id="pi-prefix">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Password Card -->
+          <div class="card profile-card">
+            <div class="card-header">
+              <h2 class="card-title">🔑 Change Password</h2>
+            </div>
+            <div class="profile-pw-form">
+              <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" id="pwCurrent" class="form-input" placeholder="Enter current password" autocomplete="current-password"/>
+              </div>
+              <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="pwNew" class="form-input" placeholder="Min 6 characters" autocomplete="new-password"/>
+              </div>
+              <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" id="pwConfirm" class="form-input" placeholder="Repeat new password" autocomplete="new-password"/>
+              </div>
+              <button class="btn btn-primary btn-full mt-16" onclick="changePassword()" id="changePwBtn">
+                🔑 Update Password
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div><!-- end page-content -->
   </main>
 
   <!-- Toast notification -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/js/app.js"></script>
+  <script src="/js/app.js?v=1778442044"></script>
 </body>
 </html>
