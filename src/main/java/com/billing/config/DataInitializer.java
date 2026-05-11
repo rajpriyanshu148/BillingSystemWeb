@@ -30,13 +30,11 @@ public class DataInitializer {
                                       PasswordEncoder encoder) {
         return args -> {
 
-            // ── Force Wipe for fresh seed ──
-            log.info("🧹 Wiping existing database for fresh seed...");
-            orders.deleteAll();
-            products.deleteAll();
-            customers.deleteAll();
-            users.deleteAll();
-            businessRepo.deleteAll();
+            // ── Already registered via /register page — skip seeding ─
+            if (businessRepo.existsByIdNotNull() || users.count() > 0) {
+                log.info("✅ Database already contains data — skipping demo seed");
+                return;
+            }
 
             log.info("🍽️  Seeding Spice Garden Restaurant demo data...");
 
