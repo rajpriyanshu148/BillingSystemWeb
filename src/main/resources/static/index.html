@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/app.css?v=1778442199"/>
+  <!-- Chart.js for Advanced Reporting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Sidebar -->
@@ -78,6 +80,15 @@
           <div class="kpi-card shimmer"><div class="kpi-inner"></div></div>
           <div class="kpi-card shimmer"><div class="kpi-inner"></div></div>
           <div class="kpi-card shimmer"><div class="kpi-inner"></div></div>
+        </div>
+        <!-- Revenue Chart -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <h2 class="card-title">📈 Revenue Overview (Last 7 Days)</h2>
+          </div>
+          <div style="padding: 20px; height: 300px; display: flex; justify-content: center;">
+            <canvas id="revenueChart"></canvas>
+          </div>
         </div>
         <div class="card mt-24">
           <div class="card-header">
@@ -212,6 +223,7 @@
             <div class="invoice-print" id="invoicePrint"></div>
             <div class="modal-actions">
               <button class="btn btn-primary" onclick="printInvoice()">🖨️ Print</button>
+              <button class="btn btn-primary" id="btnDownloadPdf" style="background:#f59e0b;color:#fff;">📄 Download PDF</button>
               <button class="btn btn-ghost" onclick="closeModal('invoiceModal')">Close</button>
             </div>
           </div>
@@ -454,6 +466,6 @@
   <!-- Toast notification -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/js/app.js?v=1778442044"></script>
+  <script src="/js/app.js?v=1778442045"></script>
 </body>
 </html>

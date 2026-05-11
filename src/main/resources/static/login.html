@@ -160,7 +160,10 @@
                  autocomplete="username"/>
         </div>
         <div class="field">
-          <label for="password">Password</label>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="password" style="margin:0;">Password</label>
+            <a href="#" onclick="showForgotModal(event)" style="font-size:12px; color:#6366f1; text-decoration:none;">Forgot Password?</a>
+          </div>
           <input type="password" id="password" name="password"
                  placeholder="Enter your password" required
                  autocomplete="current-password"/>
@@ -188,7 +191,106 @@
         });
       });
     }
-    if (p.get('registered') !== null) document.getElementById('successBox').style.display = 'block';
+    if (p.get('registered') !== null) {
+      document.getElementById('successBox').style.display = 'block';
+    }
+  </script>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:12px; width:100%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+      <h3 style="margin-top:0; font-size:20px; font-weight:700; color:#1e293b;">Reset Password</h3>
+      
+      <div id="forgotStep1">
+        <p style="font-size:13px; color:#64748b; margin-bottom:20px;">Enter your username to receive an OTP on your registered email address.</p>
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="forgotUsername" placeholder="Admin username"/>
+        </div>
+        <button type="button" class="btn-submit" onclick="sendOtp()" id="btnSendOtp">Send OTP</button>
+      </div>
+
+      <div id="forgotStep2" style="display:none;">
+        <p style="font-size:13px; color:#10b981; margin-bottom:20px;">OTP sent successfully! Please check your email.</p>
+        <div class="field">
+          <label>Enter 6-digit OTP</label>
+          <input type="text" id="resetOtp" placeholder="123456"/>
+        </div>
+        <div class="field">
+          <label>New Password</label>
+          <input type="password" id="resetNewPw" placeholder="Min 6 characters"/>
+        </div>
+        <button type="button" class="btn-submit" onclick="resetPassword()" id="btnResetPw">Reset Password</button>
+      </div>
+
+      <div style="text-align:center; margin-top:15px;">
+        <a href="#" onclick="hideForgotModal(event)" style="font-size:13px; color:#64748b; text-decoration:none;">Cancel</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showForgotModal(e) {
+      e.preventDefault();
+      document.getElementById('forgotModal').style.display = 'flex';
+      document.getElementById('forgotStep1').style.display = 'block';
+      document.getElementById('forgotStep2').style.display = 'none';
+      document.getElementById('forgotUsername').value = document.getElementById('username').value;
+    }
+    function hideForgotModal(e) {
+      e.preventDefault();
+      document.getElementById('forgotModal').style.display = 'none';
+    }
+    
+    async function sendOtp() {
+      const username = document.getElementById('forgotUsername').value.trim();
+      if (!username) return alert('Username required');
+      document.getElementById('btnSendOtp').textContent = 'Sending...';
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({username})
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('forgotStep1').style.display = 'none';
+          document.getElementById('forgotStep2').style.display = 'block';
+        } else {
+          alert(data.error || 'Failed to send OTP');
+        }
+      } catch (err) {
+        alert('Server error');
+      } finally {
+        document.getElementById('btnSendOtp').textContent = 'Send OTP';
+      }
+    }
+
+    async function resetPassword() {
+      const username = document.getElementById('forgotUsername').value.trim();
+      const otp = document.getElementById('resetOtp').value.trim();
+      const newPassword = document.getElementById('resetNewPw').value;
+      if (!otp || !newPassword) return alert('Fill all fields');
+      document.getElementById('btnResetPw').textContent = 'Resetting...';
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({username, otp, newPassword})
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Password reset successfully! You can now sign in.');
+          document.getElementById('forgotModal').style.display = 'none';
+        } else {
+          alert(data.error || 'Failed to reset password');
+        }
+      } catch (err) {
+        alert('Server error');
+      } finally {
+        document.getElementById('btnResetPw').textContent = 'Reset Password';
+      }
+    }
   </script>
 </body>
 </html>

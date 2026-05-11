@@ -66,6 +66,7 @@ public class DataInitializer {
             admin.setRole(User.Role.ADMIN);
             admin.setFullName("Rajesh Kumar");
             admin.setActive(true);
+            admin.setBusinessProfile(biz);
             User savedAdmin = users.save(admin);
 
             User cashier = new User();
@@ -74,6 +75,7 @@ public class DataInitializer {
             cashier.setRole(User.Role.STAFF);
             cashier.setFullName("Priya Sharma");
             cashier.setActive(true);
+            cashier.setBusinessProfile(biz);
             users.save(cashier);
 
             User staff = new User();
@@ -82,6 +84,7 @@ public class DataInitializer {
             staff.setRole(User.Role.STAFF);
             staff.setFullName("Arun Nair");
             staff.setActive(true);
+            staff.setBusinessProfile(biz);
             users.save(staff);
             log.info("✅ Users: admin / cashier / staff");
 
@@ -151,6 +154,7 @@ public class DataInitializer {
                 p.setQuantity(Integer.parseInt(row[3]));
                 p.setGstPercent(new BigDecimal(row[4]));
                 p.setUnit(row[5]); p.setActive(true);
+                p.setBusinessProfile(biz);
                 saved.add(products.save(p));
             }
             log.info("✅ Menu: {} items (Starters, Mains Veg/Non-Veg, Breads, Rice, Beverages, Desserts)", saved.size());
@@ -172,6 +176,7 @@ public class DataInitializer {
                 Customer c = new Customer();
                 c.setName((String) cd[0]); c.setPhone((String) cd[1]);
                 c.setEmail((String) cd[2]); c.setGstin((String) cd[3]);
+                c.setBusinessProfile(biz);
                 custs.add(customers.save(c));
             }
             log.info("✅ Customers: 8 records");
@@ -226,6 +231,7 @@ public class DataInitializer {
                 order.setPaymentStatus(Order.PaymentStatus.PAID);
                 order.setNotes(note);
                 order.setInvoiceNumber("SG-" + datePrefix + "-" + String.format("%04d", invoiceCounter++));
+                order.setBusinessProfile(biz);
 
                 List<OrderItem> itemList = new ArrayList<>();
                 BigDecimal subtotal = BigDecimal.ZERO;

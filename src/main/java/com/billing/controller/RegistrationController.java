@@ -101,14 +101,17 @@ public class RegistrationController {
         admin.setUsername(adminUsername.trim());
         admin.setPassword(encoder.encode(adminPassword));
         admin.setFullName(adminFullName != null && !adminFullName.isBlank() ? adminFullName : adminUsername);
+        admin.setEmail(email);
         admin.setRole(User.Role.ADMIN);
         admin.setActive(true);
+        admin.setBusinessProfile(biz); // Link tenant
         userRepo.save(admin);
 
         // 3. Create Walk-in Customer
         Customer walkIn = new Customer();
         walkIn.setName("Walk-in Customer");
         walkIn.setPhone("0000000000");
+        walkIn.setBusinessProfile(biz);
         customerRepo.save(walkIn);
 
         ra.addFlashAttribute("registered", true);

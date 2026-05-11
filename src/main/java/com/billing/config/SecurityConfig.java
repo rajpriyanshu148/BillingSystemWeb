@@ -37,7 +37,8 @@ public class SecurityConfig {
                     "/login", "/login.html",
                     "/register", "/register.html",
                     "/css/**", "/js/**", "/favicon.ico",
-                    "/h2-console/**"
+                    "/h2-console/**",
+                    "/api/auth/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

@@ -7,9 +7,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "orders")
+@Filter(name = "tenantFilter", condition = "business_id = :tenantId")
 public class Order {
 
     public enum PaymentMethod { CASH, CARD, UPI, ONLINE }
@@ -18,6 +23,11 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    private BusinessProfile businessProfile;
 
     @Column(name = "invoice_number", nullable = false, unique = true, length = 30)
     private String invoiceNumber;
@@ -77,6 +87,8 @@ public class Order {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public BusinessProfile getBusinessProfile() { return businessProfile; }
+    public void setBusinessProfile(BusinessProfile businessProfile) { this.businessProfile = businessProfile; }
     public String getInvoiceNumber() { return invoiceNumber; }
     public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
     public Customer getCustomer() { return customer; }

@@ -74,7 +74,53 @@ async function loadDashboard() {
     const data = await api('/api/dashboard');
     renderKPIs(data);
     renderRecentOrders(data.recentOrders);
+    renderChart(data.revenueTrend);
   } catch (e) { toast('Failed to load dashboard', 'error'); }
+}
+
+let revenueChartInstance = null;
+
+function renderChart(trendData) {
+  const ctx = document.getElementById('revenueChart');
+  if (!ctx) return;
+  
+  // trendData is descending by date, so reverse it for left-to-right chronological
+  const reversed = [...trendData].reverse();
+  const labels = reversed.map(d => {
+    const parts = d.date.split('-');
+    return `${parts[2]}/${parts[1]}`;
+  });
+  const data = reversed.map(d => d.revenue);
+
+  if (revenueChartInstance) {
+    revenueChartInstance.destroy();
+  }
+
+  revenueChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: data,
+        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+        borderColor: 'rgba(99, 102, 241, 1)',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+      }
+    }
+  });
 }
 
 function renderKPIs(data) {
@@ -109,7 +155,7 @@ function renderRecentOrders(orders) {
     return;
   }
   tbody.innerHTML = orders.map(o => `
-    <tr>
+    <tr style="cursor:pointer" onclick="viewBill(${o.id})">
       <td><strong>${o.invoiceNumber}</strong></td>
       <td>${o.customerName}</td>
       <td><strong>${fmt(o.totalAmount)}</strong></td>
@@ -117,6 +163,13 @@ function renderRecentOrders(orders) {
       <td>${statusBadge(o.paymentStatus)}</td>
       <td>${fmtDate(o.createdAt)}</td>
     </tr>`).join('');
+}
+
+async function viewBill(id) {
+  try {
+    const order = await api(`/api/bills/${id}`);
+    showInvoice(order);
+  } catch (e) { toast('Failed to load bill', 'error'); }
 }
 
 // ── Billing ───────────────────────────────────────────────────
@@ -399,6 +452,10 @@ function showInvoice(order) {
       </div>
       <div style="margin-top:20px;text-align:center;font-size:11px;color:#94a3b8">Thank you for your business! 🙏</div>
     </div>`;
+  const pdfBtn = document.getElementById('btnDownloadPdf');
+  if (pdfBtn) {
+    pdfBtn.onclick = () => window.open(`/api/bills/${order.id}/pdf`, '_blank');
+  }
   document.getElementById('invoiceModal').classList.remove('hidden');
 }
 

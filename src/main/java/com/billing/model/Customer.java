@@ -6,14 +6,24 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "customers")
+@Filter(name = "tenantFilter", condition = "business_id = :tenantId")
 public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    private BusinessProfile businessProfile;
 
     @NotBlank(message = "Customer name is required")
     @Column(nullable = false, length = 100)
@@ -44,6 +54,8 @@ public class Customer {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public BusinessProfile getBusinessProfile() { return businessProfile; }
+    public void setBusinessProfile(BusinessProfile businessProfile) { this.businessProfile = businessProfile; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getPhone() { return phone; }

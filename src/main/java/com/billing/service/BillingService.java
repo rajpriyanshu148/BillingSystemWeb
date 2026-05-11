@@ -1,5 +1,7 @@
 package com.billing.service;
 
+import com.billing.model.User;
+import com.billing.model.BusinessProfile;
 import com.billing.model.Customer;
 import com.billing.model.Order;
 import com.billing.model.OrderItem;
@@ -51,10 +53,18 @@ public class BillingService {
         data.put("customerCount",  customerRepository.countAll());
         data.put("recentOrders",   orderRepository.findTop10ByOrderByCreatedAtDesc()
                 .stream().map(this::orderToMap).toList());
+        data.put("revenueTrend",   getDailyReport().stream().limit(7).toList());
         return data;
     }
 
     // ── Products ───────────────────────────────────────────────
+
+    private BusinessProfile getCurrentBusinessProfile() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal().equals("anonymousUser")) return null;
+        return userRepository.findByUsernameAndActiveTrue(auth.getName())
+                .map(User::getBusinessProfile).orElse(null);
+    }
 
     public List<Product> getActiveProducts() {
         return productRepository.findByActiveTrueOrderByNameAsc();
@@ -76,6 +86,9 @@ public class BillingService {
     @Transactional
     public Product saveProduct(Product product) {
         validateProduct(product);
+        if (product.getId() == null) {
+            product.setBusinessProfile(getCurrentBusinessProfile());
+        }
         return productRepository.save(product);
     }
 
@@ -98,6 +111,9 @@ public class BillingService {
     @Transactional
     public Customer saveCustomer(Customer customer) {
         validateCustomer(customer);
+        if (customer.getId() == null) {
+            customer.setBusinessProfile(getCurrentBusinessProfile());
+        }
         return customerRepository.save(customer);
     }
 
@@ -121,6 +137,7 @@ public class BillingService {
         Order order = new Order();
         order.setUser(user);
         order.setCustomer(customer);
+        order.setBusinessProfile(user.getBusinessProfile());
         order.setPaymentMethod(Order.PaymentMethod.valueOf(req.getPaymentMethod()));
         order.setNotes(req.getNotes());
 
@@ -151,10 +168,12 @@ public class BillingService {
         return orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Order> getOrderByInvoice(String invoiceNo) {
         return orderRepository.findByInvoiceNumber(invoiceNo);
     }
 
+    @Transactional(readOnly = true)
     public Order getOrderById(Long id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + id));

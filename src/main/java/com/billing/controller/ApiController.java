@@ -5,7 +5,10 @@ import com.billing.model.User;
 import com.billing.repository.BusinessProfileRepository;
 import com.billing.repository.UserRepository;
 import com.billing.service.BillingService;
+import com.billing.service.PdfService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,15 +27,18 @@ public class ApiController {
     private final BusinessProfileRepository businessProfileRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PdfService pdfService;
 
     public ApiController(BillingService billingService,
                          BusinessProfileRepository businessProfileRepository,
                          UserRepository userRepository,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         PdfService pdfService) {
         this.billingService = billingService;
         this.businessProfileRepository = businessProfileRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.pdfService = pdfService;
     }
 
     @Value("${app.version:1.0.0}")
@@ -184,6 +190,19 @@ public class ApiController {
         return billingService.getOrderByInvoice(invoiceNo)
                 .map(o -> ResponseEntity.ok(orderToDetailMap(o)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(value = "/bills/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getBillPdf(@PathVariable Long id) {
+        var order = billingService.getOrderById(id);
+        byte[] pdfBytes = pdfService.generateInvoicePdf(order);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", "Invoice_" + order.getInvoiceNumber() + ".pdf");
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
     }
 
     // ── Reports ─────────────────────────────────────────────────
