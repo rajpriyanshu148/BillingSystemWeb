@@ -724,10 +724,71 @@ function loadProfile() {
   set('pi-address', info.address);
   set('pi-gstin',   info.gstin);
   set('pi-prefix',  info.prefix);
+  set('pi-city',    info.city);
+  set('pi-state',   info.state);
+  set('pi-pincode', info.pincode);
 
   // Highlight company name
   const el = document.getElementById('pi-company');
   if (el) el.classList.add('highlight');
+}
+
+function openEditProfileModal() {
+  const info = state.appInfo;
+  if (!info) return;
+  document.getElementById('epName').value = info.company || '';
+  document.getElementById('epType').value = info.businessType || '';
+  document.getElementById('epOwner').value = info.ownerName || '';
+  document.getElementById('epPhone').value = info.phone || '';
+  document.getElementById('epEmail').value = info.email || '';
+  document.getElementById('epPrefix').value = info.prefix || '';
+  
+  // Extract address parts
+  const fullAddr = info.address || '';
+  const addrParts = fullAddr.split(',');
+  document.getElementById('epAddress').value = addrParts[0] ? addrParts[0].trim() : '';
+  
+  document.getElementById('epCity').value = info.city || '';
+  document.getElementById('epState').value = info.state || '';
+  document.getElementById('epPincode').value = info.pincode || '';
+  document.getElementById('epGstin').value = info.gstin || '';
+  
+  document.getElementById('editProfileModal').classList.remove('hidden');
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    const payload = {
+      businessName: document.getElementById('epName').value,
+      businessType: document.getElementById('epType').value,
+      ownerName: document.getElementById('epOwner').value,
+      phone: document.getElementById('epPhone').value,
+      email: document.getElementById('epEmail').value,
+      invoicePrefix: document.getElementById('epPrefix').value,
+      addressLine1: document.getElementById('epAddress').value,
+      city: document.getElementById('epCity').value,
+      state: document.getElementById('epState').value,
+      pincode: document.getElementById('epPincode').value,
+      gstin: document.getElementById('epGstin').value
+    };
+    
+    await api('/api/info', { method: 'PUT', body: payload });
+    toast('Profile updated successfully!', 'success');
+    closeModal('editProfileModal');
+    
+    // Refresh app info and UI
+    await loadAppInfo();
+    loadProfile();
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
 }
 
 async function changePassword() {

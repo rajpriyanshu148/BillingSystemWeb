@@ -90,6 +90,31 @@ public class ApiController {
         return ResponseEntity.ok(info);
     }
 
+    @PutMapping("/info")
+    public ResponseEntity<?> updateInfo(@RequestBody BusinessProfile updatedProfile) {
+        Optional<BusinessProfile> bpOpt = businessProfileRepository.findAll().stream().findFirst();
+        BusinessProfile bp = bpOpt.orElseGet(BusinessProfile::new);
+
+        bp.setBusinessName(updatedProfile.getBusinessName());
+        bp.setBusinessType(updatedProfile.getBusinessType());
+        bp.setOwnerName(updatedProfile.getOwnerName());
+        bp.setPhone(updatedProfile.getPhone());
+        bp.setEmail(updatedProfile.getEmail());
+        bp.setAddressLine1(updatedProfile.getAddressLine1());
+        bp.setCity(updatedProfile.getCity());
+        bp.setState(updatedProfile.getState());
+        bp.setPincode(updatedProfile.getPincode());
+        bp.setGstin(updatedProfile.getGstin());
+        bp.setInvoicePrefix(updatedProfile.getInvoicePrefix());
+        
+        if (bp.getRegisteredAt() == null) {
+            bp.setRegisteredAt(java.time.LocalDateTime.now());
+        }
+
+        businessProfileRepository.save(bp);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Business Profile Updated Successfully"));
+    }
+
     // ── Dashboard ───────────────────────────────────────────────
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
