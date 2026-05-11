@@ -23,7 +23,7 @@ public class Product {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_id", nullable = false)
+    @JoinColumn(name = "business_id")
     private BusinessProfile businessProfile;
 
     @NotBlank(message = "Product name is required")

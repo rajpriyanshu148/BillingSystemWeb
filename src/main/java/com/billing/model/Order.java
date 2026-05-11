@@ -26,7 +26,7 @@ public class Order {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_id", nullable = false)
+    @JoinColumn(name = "business_id")
     private BusinessProfile businessProfile;
 
     @Column(name = "invoice_number", nullable = false, unique = true, length = 30)

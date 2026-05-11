@@ -24,7 +24,7 @@ public class User {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_id", nullable = false)
+    @JoinColumn(name = "business_id")
     private BusinessProfile businessProfile;
 
     @Column(nullable = false, unique = true, length = 50)
