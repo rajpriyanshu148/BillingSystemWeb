@@ -5,6 +5,8 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)
 
+> 🟢 **Live Demo / Deployed Application:** [https://billing-system-pro-p3kp.onrender.com](https://billing-system-pro-p3kp.onrender.com)
+
 BillingSystem Pro is a **robust, multi-tenant enterprise billing platform** developed in Java Spring Boot. Built from the ground up for academic and real-world business use, this system securely manages products, customers, and invoice generation for multiple distinct businesses simultaneously. 
 
 Each business ("tenant") has strictly isolated data, their own admin and staff accounts, and fully customizable dashboard metrics.
