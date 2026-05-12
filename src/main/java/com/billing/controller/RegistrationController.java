@@ -14,6 +14,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 
+/**
+ * Controller handling the initial tenant registration workflow.
+ * Provides web endpoints to register a new business profile and its admin user.
+ */
 @Controller
 public class RegistrationController {
 
@@ -32,13 +36,39 @@ public class RegistrationController {
         this.encoder = encoder;
     }
 
-    /** Show registration page — only if no business registered yet */
+    /**
+     * Renders the registration page.
+     * This page is accessible only if no business has been registered yet, or for multi-tenant setups.
+     *
+     * @return the view name for the registration page
+     */
     @GetMapping("/register")
     public String registerPage() {
         return "forward:/register.html";
     }
 
-    /** Handle registration form submission */
+    /**
+     * Processes the registration form submission.
+     * Creates a new BusinessProfile, assigns an Admin user, and provisions default demo data (e.g., Walk-in Customer).
+     *
+     * @param businessName  The name of the business (required)
+     * @param businessType  The category of the business
+     * @param ownerName     The owner's name
+     * @param phone         Business contact number
+     * @param email         Business contact email
+     * @param website       Business website URL
+     * @param addressLine1  Primary address
+     * @param city          City location
+     * @param state         State/Province
+     * @param pincode       Postal code
+     * @param gstin         GST Identification Number
+     * @param invoicePrefix Prefix for generated invoices (defaults to INV)
+     * @param adminUsername The username for the admin account (required)
+     * @param adminPassword The password for the admin account (required, min 6 chars)
+     * @param adminFullName Full name of the admin user
+     * @param ra            RedirectAttributes to send flash messages to the UI
+     * @return A redirect URL (either back to register on error, or login on success)
+     */
     @PostMapping("/register")
     public String doRegister(
             // Business fields

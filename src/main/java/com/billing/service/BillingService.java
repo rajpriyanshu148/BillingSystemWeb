@@ -18,6 +18,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Core service for handling business logic related to billing, inventory,
+ * and customer management. Ensures operations are transactional and secure.
+ */
 @Service
 public class BillingService {
 
@@ -41,6 +45,12 @@ public class BillingService {
 
     // ── Dashboard ──────────────────────────────────────────────
 
+    /**
+     * Aggregates real-time data for the dashboard.
+     * Calculates today's revenue, bill counts, and fetches recent orders.
+     *
+     * @return A map containing dashboard statistics
+     */
     @Transactional(readOnly = true)
     public Map<String, Object> getDashboardData() {
         java.time.LocalDateTime startOfDay  = java.time.LocalDate.now().atStartOfDay();
@@ -66,6 +76,11 @@ public class BillingService {
                 .map(User::getBusinessProfile).orElse(null);
     }
 
+    /**
+     * Retrieves all active products sorted alphabetically.
+     *
+     * @return List of active products
+     */
     public List<Product> getActiveProducts() {
         return productRepository.findByActiveTrueOrderByNameAsc();
     }
@@ -83,6 +98,13 @@ public class BillingService {
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + id));
     }
 
+    /**
+     * Saves a new product or updates an existing one.
+     * Automatically links the product to the current user's business profile.
+     *
+     * @param product The product to save
+     * @return The persisted product
+     */
     @Transactional
     public Product saveProduct(Product product) {
         validateProduct(product);
@@ -92,6 +114,12 @@ public class BillingService {
         return productRepository.save(product);
     }
 
+    /**
+     * Soft-deletes a product by setting its active status to false.
+     *
+     * @param id The ID of the product to delete
+     * @return true if successful, false otherwise
+     */
     @Transactional
     public boolean deleteProduct(Long id) {
         return productRepository.softDelete(id) > 0;

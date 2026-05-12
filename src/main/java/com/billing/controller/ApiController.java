@@ -15,12 +15,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Main API Controller for the Billing System.
+ * Handles endpoints for Dashboard data, Products, Customers, and Orders.
+ */
 @RestController
 @RequestMapping("/api")
+@Tag(name = "Billing System API", description = "Core API endpoints for managing products, customers, orders, and dashboard metrics")
 public class ApiController {
 
     private final BillingService billingService;
@@ -56,7 +63,14 @@ public class ApiController {
     private String fallbackGstin;
 
     // ── App Info ────────────────────────────────────────────────
+    /**
+     * Retrieves application and business profile information for the UI.
+     *
+     * @param user The authenticated user principal
+     * @return Map containing configuration and profile data
+     */
     @GetMapping("/info")
+    @Operation(summary = "Get Business Info", description = "Retrieves current business profile details and system configuration.")
     public ResponseEntity<Map<String, Object>> getInfo(@AuthenticationPrincipal UserDetails user) {
         Optional<BusinessProfile> bpOpt = businessProfileRepository.findAll().stream().findFirst();
 
@@ -90,7 +104,14 @@ public class ApiController {
         return ResponseEntity.ok(info);
     }
 
+    /**
+     * Updates the current business profile.
+     *
+     * @param updatedProfile The updated profile details from the UI
+     * @return Success message upon successful update
+     */
     @PutMapping("/info")
+    @Operation(summary = "Update Business Info", description = "Updates the business profile details for the active tenant.")
     public ResponseEntity<?> updateInfo(@RequestBody BusinessProfile updatedProfile) {
         Optional<BusinessProfile> bpOpt = businessProfileRepository.findAll().stream().findFirst();
         BusinessProfile bp = bpOpt.orElseGet(BusinessProfile::new);
@@ -116,7 +137,13 @@ public class ApiController {
     }
 
     // ── Dashboard ───────────────────────────────────────────────
+    /**
+     * Fetches real-time dashboard metrics including total revenue, bills generated, and low stock items.
+     *
+     * @return A map containing dashboard statistics
+     */
     @GetMapping("/dashboard")
+    @Operation(summary = "Get Dashboard Metrics", description = "Retrieves key performance indicators for the admin dashboard.")
     public ResponseEntity<?> getDashboard() {
         try {
             return ResponseEntity.ok(billingService.getDashboardData());
@@ -127,16 +154,17 @@ public class ApiController {
     }
 
     // ── Products ────────────────────────────────────────────────
-    @GetMapping("/products")
-    public ResponseEntity<?> getProducts(@RequestParam(required = false) String search) {
+    /**
+     * Retrieves all active products.
+     *
+     * @return List of all products belonging to the current tenant
+     */
+    @GetMapping("/products/all")
+    @Operation(summary = "Get All Products", description = "Returns a list of all products in the system.")
+    public ResponseEntity<?> getAllProducts(@RequestParam(required = false) String search) {
         if (search != null && !search.isBlank())
             return ResponseEntity.ok(billingService.searchProducts(search));
         return ResponseEntity.ok(billingService.getActiveProducts());
-    }
-
-    @GetMapping("/products/all")
-    public ResponseEntity<?> getAllProducts() {
-        return ResponseEntity.ok(billingService.getAllProducts());
     }
 
     @GetMapping("/products/{id}")
@@ -144,8 +172,15 @@ public class ApiController {
         return ResponseEntity.ok(billingService.getProduct(id));
     }
 
-    @PostMapping("/products")
-    public ResponseEntity<?> createProduct(@RequestBody com.billing.model.Product product) {
+    /**
+     * Creates or updates a product.
+     *
+     * @param product The product data to save
+     * @return The saved product entity
+     */
+    @PostMapping("/products/save")
+    @Operation(summary = "Save/Update Product", description = "Creates a new product or updates an existing one if ID is provided.")
+    public ResponseEntity<?> saveProduct(@RequestBody com.billing.model.Product product) {
         product.setId(null);
         return ResponseEntity.ok(billingService.saveProduct(product));
     }
@@ -156,15 +191,28 @@ public class ApiController {
         return ResponseEntity.ok(billingService.saveProduct(product));
     }
 
+    /**
+     * Deletes a product by ID.
+     *
+     * @param id The ID of the product to delete
+     * @return Success message
+     */
     @DeleteMapping("/products/{id}")
+    @Operation(summary = "Delete Product", description = "Removes a product from the database by its ID.")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         billingService.deleteProduct(id);
         return ResponseEntity.ok(Map.of("success", true));
     }
 
     // ── Customers ───────────────────────────────────────────────
-    @GetMapping("/customers")
-    public ResponseEntity<?> getCustomers() {
+    /**
+     * Retrieves all customers.
+     *
+     * @return List of all customers belonging to the current tenant
+     */
+    @GetMapping("/customers/all")
+    @Operation(summary = "Get All Customers", description = "Returns a list of all registered customers.")
+    public ResponseEntity<?> getAllCustomers() {
         return ResponseEntity.ok(billingService.getAllCustomers());
     }
 
@@ -173,8 +221,15 @@ public class ApiController {
         return ResponseEntity.ok(billingService.getCustomer(id));
     }
 
-    @PostMapping("/customers")
-    public ResponseEntity<?> createCustomer(@RequestBody com.billing.model.Customer customer) {
+    /**
+     * Creates or updates a customer.
+     *
+     * @param customer The customer data to save
+     * @return The saved customer entity
+     */
+    @PostMapping("/customers/save")
+    @Operation(summary = "Save/Update Customer", description = "Creates a new customer or updates an existing one.")
+    public ResponseEntity<?> saveCustomer(@RequestBody com.billing.model.Customer customer) {
         customer.setId(null);
         return ResponseEntity.ok(billingService.saveCustomer(customer));
     }
@@ -185,15 +240,30 @@ public class ApiController {
         return ResponseEntity.ok(billingService.saveCustomer(customer));
     }
 
+    /**
+     * Deletes a customer by ID.
+     *
+     * @param id The ID of the customer to delete
+     * @return Success message
+     */
     @DeleteMapping("/customers/{id}")
+    @Operation(summary = "Delete Customer", description = "Removes a customer from the database by their ID.")
     public ResponseEntity<?> deleteCustomer(@PathVariable Long id) {
         billingService.deleteCustomer(id);
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    // ── Billing ─────────────────────────────────────────────────
-    @PostMapping("/bills")
-    public ResponseEntity<?> createBill(@RequestBody BillingService.BillRequest req,
+    // ── Orders / Bills ──────────────────────────────────────────
+    /**
+     * Generates a new invoice/order.
+     *
+     * @param req The order details including items and customer info
+     * @param user The authenticated user principal
+     * @return The saved order entity with generated invoice number
+     */
+    @PostMapping("/bills/generate")
+    @Operation(summary = "Generate Invoice", description = "Processes a new sale and generates an invoice.")
+    public ResponseEntity<?> generateBill(@RequestBody BillingService.BillRequest req,
                                          @AuthenticationPrincipal UserDetails user) {
         var order = billingService.saveBill(req, user.getUsername());
         return ResponseEntity.ok(Map.of(
@@ -217,7 +287,14 @@ public class ApiController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Downloads an invoice as a PDF file.
+     *
+     * @param id The ID of the order/invoice
+     * @return A downloadable PDF byte array
+     */
     @GetMapping(value = "/bills/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Download Invoice PDF", description = "Generates and returns the specified invoice as a PDF document.")
     public ResponseEntity<byte[]> getBillPdf(@PathVariable Long id) {
         var order = billingService.getOrderById(id);
         byte[] pdfBytes = pdfService.generateInvoicePdf(order);
@@ -231,27 +308,43 @@ public class ApiController {
     }
 
     // ── Reports ─────────────────────────────────────────────────
+    /**
+     * Retrieves daily sales report.
+     *
+     * @return A map containing daily revenue summaries
+     */
     @GetMapping("/reports/daily")
+    @Operation(summary = "Get Daily Sales Report", description = "Returns revenue data grouped by day.")
     public ResponseEntity<?> getDailyReport() {
         return ResponseEntity.ok(billingService.getDailyReport());
     }
 
+    /**
+     * Retrieves monthly revenue report.
+     *
+     * @return A map containing monthly revenue summaries
+     */
     @GetMapping("/reports/monthly")
+    @Operation(summary = "Get Monthly Revenue Report", description = "Returns revenue data grouped by month and year.")
     public ResponseEntity<?> getMonthlyReport() {
         return ResponseEntity.ok(billingService.getMonthlyReport());
     }
 
-    // ── Profile / Change Password ────────────────────────────────
+    // ── Change Password ─────────────────────────────────────────
     /**
-     * POST /api/profile/password
-     * Body: { "currentPassword": "...", "newPassword": "..." }
+     * Changes the authenticated user's password.
+     *
+     * @param request A map containing "currentPassword" and "newPassword"
+     * @param user    The authenticated user principal
+     * @return Success or error message
      */
-    @PostMapping("/profile/password")
+    @PostMapping("/change-password")
+    @Operation(summary = "Change Password", description = "Allows the currently authenticated user to update their password.")
     public ResponseEntity<?> changePassword(
-            @RequestBody Map<String, String> body,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        String current = body.get("currentPassword");
-        String newPwd  = body.get("newPassword");
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal UserDetails user) {
+        String current = request.get("currentPassword");
+        String newPwd  = request.get("newPassword");
 
         if (current == null || current.isBlank())
             return ResponseEntity.badRequest().body(Map.of("error", "Current password is required."));

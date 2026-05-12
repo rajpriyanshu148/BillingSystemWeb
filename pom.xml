@@ -54,6 +54,13 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Swagger / OpenAPI for automatic API Documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
         <!-- H2 in-memory DB for tests / local dev without MySQL -->
         <dependency>
             <groupId>com.h2database</groupId>
