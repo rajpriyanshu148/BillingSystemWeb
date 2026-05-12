@@ -265,5 +265,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <div align="center">
-  <b>Developed with ❤️ by <a href="https://github.com/rajpriyanshu148">Priyanshu Raj</a></b>
+  <b>Developed with ❤️ by <a href="https://github.com/rajpriyanshu148">Priyanshu Singh and Team</a></b>
 </div>
